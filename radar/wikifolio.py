@@ -8,12 +8,11 @@ Wenn wikifolio die Webseite umbaut, kann dieser Teil brechen – die anderen Tei
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
 
-from .common import esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
+from .common import env, esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
 from .risk import ASSET_LABEL, TraderProfile, ampel, score_trade, score_trader, trader_facts
 
 BASE = "https://www.wikifolio.com"
@@ -60,7 +59,7 @@ class Wikifolio:
     def __init__(self):
         self.s = session({"accept": "application/json, text/html"})
         self.logged_in = False
-        email, pw = os.environ.get("WIKIFOLIO_EMAIL"), os.environ.get("WIKIFOLIO_PASSWORD")
+        email, pw = env("WIKIFOLIO_EMAIL"), env("WIKIFOLIO_PASSWORD")
         if email and pw:
             try:
                 r = self.s.post(f"{BASE}/api/login?country=de&language=de",

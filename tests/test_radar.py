@@ -161,3 +161,18 @@ def test_wikifolio_kpi_by_label():
     assert round(_kpi(kf, "Performance (1 J"), 1) == 4.5
     assert round(_kpi(kf, "Volatilität (1 J", "Volatilität (Max"), 1) == 22.7
     assert _kpi(kf, "gibt es nicht") is None
+
+
+def test_etoro_formats_from_live_api():
+    from radar.etoro import has_stop_loss, profile_from_tradeinfo
+    # Werte wie live von /tradeinfo: Prozent, nicht Bruch
+    p = profile_from_tradeinfo({"riskScore": 4, "peakToValley": -10.16, "trades": 120,
+                                "highLeveragePct": 0.5, "winRatio": 87.13, "gain": 0.8})
+    assert p.high_leverage_pct == 0.5 and p.max_drawdown_pct == 10.16 and p.win_ratio_pct == 87.13
+    assert p.gain_1y_pct == 0.8 and p.trades_per_month == 10
+    assert profile_from_tradeinfo({"gain": 56.77}, gain_fraction=0.5677).gain_1y_pct == pytest.approx(56.77)
+    # Platzhalter für "kein Stop-Loss"
+    assert not has_stop_loss(0.0001, 12.58, short=False)
+    assert not has_stop_loss(230.0, 105.2, short=True)
+    assert has_stop_loss(160.0, 180.0, short=False)
+    assert has_stop_loss(115.0, 105.2, short=True)

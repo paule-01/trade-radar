@@ -5,12 +5,11 @@ Benötigt die Secrets ETORO_API_KEY und ETORO_USER_KEY (nur Leserechte nötig).
 """
 from __future__ import annotations
 
-import os
 import time
 import uuid
 from datetime import datetime, timezone
 
-from .common import esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
+from .common import env, esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
 from .risk import ASSET_LABEL, TraderProfile, ampel, score_trade, score_trader, trader_facts
 
 BASE = "https://public-api.etoro.com"
@@ -19,24 +18,36 @@ PROFILE_MAX_AGE_H = 24        # Trader-Kennzahlen 1x täglich auffrischen
 DISCOVERY_MAX_AGE_H = 24 * 7  # Rangliste 1x pro Woche neu laden
 
 
-def _pct(v) -> float | None:
-    """eToro liefert Prozentwerte teils als Bruch (0.25), teils als Prozent (25)."""
-    f = to_float(v)
-    if f is None:
-        return None
-    return f * 100 if abs(f) <= 1.0 else f
+# tradeinfo liefert Prozent (44.71 = 44,71 %), die Rangliste dagegen "gain" als Bruch (0.86).
+# Ein Raten anhand der Größe (<= 1 -> Bruch) würde 0,5 % Hebelanteil zu 50 % machen.
+_pct = to_float
+
+# eToro setzt bei "kein Stop-Loss" Platzhalter (Kauf: 0.0001, Short: sehr hoher Kurs).
+# Als echter Stop-Loss zählt nur einer, der höchstens so weit vom Einstieg entfernt liegt.
+STOP_MAX_DISTANCE = 0.5
+
+
+def has_stop_loss(sl: float | None, open_rate: float | None, short: bool) -> bool:
+    if not sl or sl <= 0:
+        return False
+    if not open_rate:
+        return sl > 0.001
+    dist = (sl - open_rate) / open_rate if short else (open_rate - sl) / open_rate
+    return dist <= STOP_MAX_DISTANCE
 
 
 class EToro:
     def __init__(self):
         self.s = session({"accept": "application/json"})
-        self.s.headers["x-api-key"] = os.environ.get("ETORO_API_KEY", "")
-        self.s.headers["x-user-key"] = os.environ.get("ETORO_USER_KEY", "")
+        self.s.headers["x-api-key"] = env("ETORO_API_KEY")
+        self.s.headers["x-user-key"] = env("ETORO_USER_KEY")
 
     def _get(self, path: str, **params):
         r = get(self.s, BASE + path, params=params, headers={"x-request-id": str(uuid.uuid4())})
         if r.status_code == 404:
             return None
+        if not r.ok:
+            log.error("eToro %s -> HTTP %s: %s", path, r.status_code, r.text[:500])
         r.raise_for_status()
         return r.json()
 
@@ -94,7 +105,7 @@ def _now() -> float:
 def run(cfg: dict, risk_cfg: dict) -> None:
     if not cfg.get("enabled", True):
         return
-    if not os.environ.get("ETORO_API_KEY"):
+    if not env("ETORO_API_KEY"):
         log.warning("eToro übersprungen: ETORO_API_KEY fehlt")
         return
     api = EToro()
@@ -215,7 +226,7 @@ def _msg(user: str, ti: dict, profile: TraderProfile, p: dict, instr: dict,
     pct = to_float(p.get("investmentPct"))
     short = p.get("isBuy") is False
     sl = to_float(p.get("stopLossRate"))
-    has_stop = bool(sl and sl > 0)
+    has_stop = has_stop_loss(sl, to_float(p.get("openRate")), short)
 
     tr = score_trade(asset, lev, short, pct, has_stop)
     dot, label, total = ampel(tr, profile, risk_cfg)

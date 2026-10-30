@@ -12,14 +12,21 @@ import requests
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-STATE_DIR = Path(os.environ.get("RADAR_STATE_DIR", ROOT / "state"))
-DRY_RUN = os.environ.get("DRY_RUN", "").lower() in ("1", "true", "yes")
+
+
+def env(name: str, default: str = "") -> str:
+    """Umgebungsvariable/Secret ohne Leerzeichen und Zeilenumbrüche am Rand (Kopierfehler)."""
+    return os.environ.get(name, default).strip()
+
+
+STATE_DIR = Path(env("RADAR_STATE_DIR") or ROOT / "state")
+DRY_RUN = env("DRY_RUN").lower() in ("1", "true", "yes")
 
 log = logging.getLogger("radar")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 # SEC verlangt einen User-Agent mit Kontakt; wird über Secret/Env gesetzt.
-CONTACT = os.environ.get("CONTACT_EMAIL", "trade-radar@example.com")
+CONTACT = env("CONTACT_EMAIL") or "trade-radar@example.com"
 UA = f"TradeRadar/1.0 ({CONTACT})"
 
 
@@ -98,33 +105,29 @@ def esc(x) -> str:
 
 
 def send_telegram(text: str, silent: bool = False) -> None:
-    """Schickt eine HTML-formatierte Nachricht; teilt zu lange Nachrichten auf."""
+    """Schickt eine HTML-formatierte Nachricht; teilt zu lange Nachrichten auf.
+
+    Bricht mit Fehler ab, wenn Token/Chat-Id fehlen oder Telegram ablehnt (außer bei DRY_RUN),
+    damit der GitHub-Lauf rot wird statt still grün.
+    """
     chunks = _split(text)
-    if DRY_RUN or not os.environ.get("TELEGRAM_BOT_TOKEN"):
+    if DRY_RUN:
         for c in chunks:
             print("\n----- TELEGRAM (Dry-Run) -----\n" + c)
         return
-    token = os.environ["TELEGRAM_BOT_TOKEN"]
-    chat = os.environ["TELEGRAM_CHAT_ID"]
+    token, chat = env("TELEGRAM_BOT_TOKEN"), env("TELEGRAM_CHAT_ID")
+    if not token or not chat:
+        raise RuntimeError("TELEGRAM_BOT_TOKEN oder TELEGRAM_CHAT_ID fehlt (für Probeläufe DRY_RUN=1 setzen)")
     for c in chunks:
-        r = requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            json={
-                "chat_id": chat,
-                "text": c,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-                "disable_notification": silent,
-            },
-            timeout=30,
-        )
+        payload = {"chat_id": chat, "text": c, "parse_mode": "HTML",
+                   "disable_web_page_preview": True, "disable_notification": silent}
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        r = requests.post(url, json=payload, timeout=30)
         if r.status_code == 429:
             time.sleep(int(r.json().get("parameters", {}).get("retry_after", 5)))
-            requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
-                          json={"chat_id": chat, "text": c, "parse_mode": "HTML",
-                                "disable_web_page_preview": True}, timeout=30)
-        elif not r.ok:
-            log.error("Telegram-Fehler %s: %s", r.status_code, r.text[:300])
+            r = requests.post(url, json=payload, timeout=30)
+        if not r.ok:
+            raise RuntimeError(f"Telegram-Fehler {r.status_code}: {r.text[:300]}")
         time.sleep(0.5)
 
 

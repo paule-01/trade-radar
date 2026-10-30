@@ -80,6 +80,11 @@ Repository → **Settings → Secrets and variables → Actions → New reposito
 
 Falls Schritt 4 mit „Permission denied“ beim Speichern scheitert: Gehe zu **Settings → Actions → General → Workflow permissions** und stelle auf **Read and write permissions**.
 
+**Wenn etwas nicht klappt:**
+- Ein Lauf wird **rot**, wenn `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` fehlen oder Telegram die Nachricht ablehnt. Den genauen Grund zeigt das Protokoll des Laufs.
+- `eToro … HTTP 422: InvalidKey` heißt: eToro lehnt den **User Key** ab (z. B. für Demo statt Real erstellt, widerrufen, oder API Key und User Key stammen aus verschiedenen Erstellungen). Lege einen neuen Schlüssel an und ersetze **beide** Secrets.
+- Leerzeichen oder Zeilenumbrüche am Anfang/Ende eines Secrets werden automatisch entfernt.
+
 ---
 
 ## Anpassen (`config.yaml`, direkt auf GitHub mit dem Stift-Symbol bearbeiten)
@@ -117,4 +122,4 @@ radar/risk.py       Risiko-Bewertung
 state/              gemerkter Stand des Tagesradars (wird automatisch gespeichert)
 tests/              Offline-Tests: python -m pytest -q
 ```
-Probelauf ohne Telegram: `DRY_RUN=1 python -m radar.daily` (die Nachrichten werden dann nur ausgegeben).
+Probelauf ohne Telegram: `DRY_RUN=1 python -m radar.daily` bzw. `DRY_RUN=1 python -m radar.realtime` (die Nachrichten werden dann nur ausgegeben). Ohne `DRY_RUN` und ohne Telegram-Token bricht der Lauf mit Fehler ab.
