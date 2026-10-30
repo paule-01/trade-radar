@@ -176,3 +176,37 @@ def test_etoro_formats_from_live_api():
     assert not has_stop_loss(230.0, 105.2, short=True)
     assert has_stop_loss(160.0, 180.0, short=False)
     assert has_stop_loss(115.0, 105.2, short=True)
+
+
+def test_wikifolio_trades_paging(monkeypatch):
+    from radar import wikifolio as w
+
+    class R:
+        ok, status_code, text = True, 200, ""
+
+        def __init__(self, page):
+            orders = [{"id": f"{page}-{i}", "orderType": "BuyLimit" if i else None} for i in range(20)]
+            self.data = {"tradeHistory": {"pageCount": 3, "orders": orders}}
+
+        def json(self):
+            return self.data
+
+        def raise_for_status(self):
+            pass
+
+    calls = []
+
+    def fake_get(s, url, params=None, **kw):
+        assert params["pagesize"] <= 20
+        calls.append(params["page"])
+        return R(params["page"])
+
+    monkeypatch.setattr(w, "get", fake_get)
+    monkeypatch.setattr(w.time, "sleep", lambda s: None)
+    api = w.Wikifolio.__new__(w.Wikifolio)
+    api.s = None
+    out = api.trades("x", 100)
+    assert calls == [0, 1, 2]  # stoppt bei pageCount
+    assert len(out) == 57 and all(o["orderType"] for o in out)  # Dividenden/Splits raus
+    assert len(api.trades("x", 20)) == 20
+    assert w._weight({"weightage": 0.0045}) == pytest.approx(0.45)

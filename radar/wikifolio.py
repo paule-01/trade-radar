@@ -17,6 +17,7 @@ from .risk import ASSET_LABEL, TraderProfile, ampel, score_trade, score_trader, 
 
 BASE = "https://www.wikifolio.com"
 PROFILE_MAX_AGE_H = 24
+PAGE_SIZE = 20  # mehr lässt wikifolio nicht zu ("Page size cannot be bigger than 20.")
 LEVER_WORDS = re.compile(r"turbo|knock|mini[ -]?(long|short|future)|optionsschein|faktor|warrant|"
                          r"hebel|\bko\b|open end|unlimited", re.I)
 
@@ -64,27 +65,46 @@ class Wikifolio:
             try:
                 r = self.s.post(f"{BASE}/api/login?country=de&language=de",
                                 data={"email": email, "password": pw, "keepLoggedIn": True}, timeout=30)
+                cookies = sorted(self.s.cookies.keys())
                 self.logged_in = r.ok
-                if not r.ok:
-                    log.error("wikifolio-Login fehlgeschlagen: HTTP %s", r.status_code)
+                text = r.text[:500].replace(email, "***").replace(pw, "***")
+                if r.ok:
+                    log.info("wikifolio-Login: HTTP %s, Cookies %s", r.status_code, cookies)
+                else:
+                    log.error("wikifolio-Login fehlgeschlagen: HTTP %s: %s", r.status_code, text)
             except Exception as e:
                 log.error("wikifolio-Login: %s", e)
 
     def page_data(self, name: str) -> dict | None:
         r = get(self.s, f"{BASE}/de/de/w/{name}")
         if not r.ok:
+            log.error("wikifolio-Seite %s -> HTTP %s: %s", name, r.status_code, r.text[:500])
             return None
         m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', r.text, re.S)
         if not m:
             return None
         return json.loads(m.group(1))
 
-    def trades(self, wf_id: str, page_size: int = 30) -> list[dict]:
-        r = get(self.s, f"{BASE}/api/wikifolio/{wf_id}/tradehistory",
-                params={"page": 0, "pagesize": page_size, "country": "de", "language": "de"},
-                headers={"accept": "application/json"})
-        r.raise_for_status()
-        return _dig(r.json(), "tradeHistory", "orders") or []
+    def trades(self, wf_id: str, count: int = PAGE_SIZE) -> list[dict]:
+        """Neueste Trades (ohne Dividenden/Splits); blättert, da wikifolio max. 20 pro Seite liefert."""
+        out: list[dict] = []
+        page = 0
+        while len(out) < count:
+            r = get(self.s, f"{BASE}/api/wikifolio/{wf_id}/tradehistory",
+                    params={"page": page, "pagesize": PAGE_SIZE, "country": "de", "language": "de"},
+                    headers={"accept": "application/json"})
+            if not r.ok:
+                log.error("wikifolio tradehistory -> HTTP %s: %s", r.status_code, r.text[:500])
+            r.raise_for_status()
+            th = r.json().get("tradeHistory") or {}
+            orders = th.get("orders") or []
+            # Kapitalmaßnahmen (Dividende, Split) haben keinen orderType
+            out += [o for o in orders if o.get("orderType")]
+            page += 1
+            if not orders or page >= (th.get("pageCount") or 0):
+                break
+            time.sleep(0.5)
+        return out[:count]
 
 
 def profile_from_page(nd: dict, trades: list[dict]) -> tuple[TraderProfile, dict]:
@@ -159,6 +179,12 @@ def _parse_dt(s):
         return None
 
 
+def _weight(t: dict) -> float | None:
+    """weightage ist ein Bruch (0.0045 = 0,45 % des Depots)."""
+    w = to_float(t.get("weightage"))
+    return w * 100 if w is not None else None
+
+
 def _asset(t: dict) -> str:
     name = t.get("name") or ""
     if t.get("isLeveraged") or LEVER_WORDS.search(name):
@@ -202,7 +228,7 @@ def run(cfg: dict, risk_cfg: dict) -> None:
                 entry.update({"id": wf_id, "info": info, "profile": prof.__dict__ | {"reasons": []},
                               "profile_ts": time.time()})
             else:
-                trades = api.trades(entry["id"], 30)
+                trades = api.trades(entry["id"])
         except Exception as e:
             log.error("wikifolio %s: %s", name, e)
             continue
@@ -223,7 +249,7 @@ def run(cfg: dict, risk_cfg: dict) -> None:
             tid = str(t.get("id"))
             if tid in seen:
                 continue
-            w = _pct(t.get("weightage"))
+            w = _weight(t)
             if w is not None and abs(w) < min_w:
                 continue
             msgs.append(_msg(name, info, profile, t, w, risk_cfg))
