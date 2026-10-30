@@ -1,0 +1,75 @@
+# ============================================================
+#  Trade-Radar – Einstellungen
+#  Alles hier kannst du jederzeit ändern (direkt auf GitHub im Browser).
+# ============================================================
+
+# ---------- SOFORT-PUSH (läuft alle ~10 Minuten) ----------
+
+etoro:
+  enabled: true
+  # Feste Liste von eToro-Usernamen, die du verfolgen willst (Groß-/Kleinschreibung egal).
+  traders: []
+    # - jeppekirkbonde
+    # - thomaspj
+  # Zusätzlich automatisch die besten Popular Investors aus der eToro-Rangliste holen:
+  auto_discover:
+    enabled: true
+    count: 15              # wie viele Trader automatisch beobachtet werden
+    period: OneYearAgo     # Zeitraum für die Rangliste
+    risk_score_max: 6      # nur Trader mit eToro-Risiko <= diesem Wert (1-10)
+    min_copiers: 500       # nur Trader mit mindestens so vielen Kopierern
+  # Auch geschlossene (verkaufte) Positionen melden?
+  notify_closes: true
+  # Sehr kleine Positionen ignorieren (Anteil am Depot in %)
+  min_position_pct: 0.5
+
+wikifolio:
+  enabled: true
+  # wikifolio-Kürzel (steht in der URL, z.B. wikifolio.com/de/de/w/wf00trend7 -> wf00trend7)
+  wikifolios: []
+    # - wf00trend7
+  min_weight_pct: 0.5      # Trades mit weniger Gewicht im Depot ignorieren
+
+# ---------- TAGESZUSAMMENFASSUNG (läuft einmal täglich) ----------
+
+daily:
+  ark:
+    enabled: true
+    funds: [ARKK, ARKW, ARKG, ARKQ, ARKF, ARKX]
+    min_change_pct: 5      # nur Positionsänderungen ab x % der Stückzahl melden
+
+  insider_us:
+    enabled: true
+    min_value_usd: 250000  # nur Insider-KÄUFE ab diesem Wert
+    max_items: 15
+
+  insider_de:
+    enabled: true
+    min_value_eur: 100000  # Directors' Dealings (Käufe) ab diesem Wert
+    max_items: 15
+
+  congress:
+    enabled: true
+    house: true
+    senate: true
+    # Leer = alle Abgeordneten. Sonst nur diese Nachnamen:
+    only_members: []
+      # - Pelosi
+
+  funds_13f:
+    enabled: true
+    # Name: SEC-CIK-Nummer
+    investors:
+      "Warren Buffett (Berkshire Hathaway)": 1067983
+      "Bill Ackman (Pershing Square)": 1336528
+      "Ray Dalio (Bridgewater)": 1350694
+      "David Tepper (Appaloosa)": 1656456
+      "Stanley Druckenmiller (Duquesne)": 1536411
+      "Seth Klarman (Baupost)": 1061768
+    max_changes_per_fund: 10
+
+# ---------- RISIKO-EINORDNUNG ----------
+risk:
+  # Ab welchem Gesamt-Punktwert (0-100) gilt etwas als gelb / rot
+  yellow_from: 35
+  red_from: 65

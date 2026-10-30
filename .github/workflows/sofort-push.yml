@@ -1,0 +1,43 @@
+name: Sofort-Push (eToro + wikifolio)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # alle 10 Minuten (GitHub startet manchmal ein paar Minuten später)
+  workflow_dispatch: {}
+
+concurrency:
+  group: sofort-push
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      RADAR_STATE_DIR: state-rt
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      ETORO_API_KEY: ${{ secrets.ETORO_API_KEY }}
+      ETORO_USER_KEY: ${{ secrets.ETORO_USER_KEY }}
+      WIKIFOLIO_EMAIL: ${{ secrets.WIKIFOLIO_EMAIL }}
+      WIKIFOLIO_PASSWORD: ${{ secrets.WIKIFOLIO_PASSWORD }}
+      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      # Zustand (welche Positionen schon bekannt sind) zwischen den Läufen merken
+      - uses: actions/cache/restore@v4
+        with:
+          path: state-rt
+          key: rt-state-${{ github.run_id }}
+          restore-keys: rt-state-
+      - run: python -m radar.realtime
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: state-rt
+          key: rt-state-${{ github.run_id }}
