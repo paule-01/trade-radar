@@ -56,6 +56,16 @@ def _find_key(obj, names: set[str]):
     return None
 
 
+def _login_error(r) -> str:
+    """Nur ein kurzes Fehlerfeld aus der JSON-Antwort, nie die ganze Antwort."""
+    try:
+        d = r.json()
+    except ValueError:
+        return "keine JSON-Antwort"
+    msg = d.get("message") or d.get("error") or d.get("errorCode") if isinstance(d, dict) else None
+    return str(msg)[:80] if msg else "ohne Fehlermeldung"
+
+
 class Wikifolio:
     def __init__(self):
         self.s = session({"accept": "application/json, text/html"})
@@ -67,11 +77,11 @@ class Wikifolio:
                                 data={"email": email, "password": pw, "keepLoggedIn": True}, timeout=30)
                 cookies = sorted(self.s.cookies.keys())
                 self.logged_in = r.ok
-                text = r.text[:500].replace(email, "***").replace(pw, "***")
                 if r.ok:
                     log.info("wikifolio-Login: HTTP %s, Cookies %s", r.status_code, cookies)
                 else:
-                    log.error("wikifolio-Login fehlgeschlagen: HTTP %s: %s", r.status_code, text)
+                    # Kein Antworttext: Actions-Protokolle öffentlicher Repos sind für alle lesbar
+                    log.error("wikifolio-Login fehlgeschlagen: HTTP %s (%s)", r.status_code, _login_error(r))
             except Exception as e:
                 log.error("wikifolio-Login: %s", e)
 
