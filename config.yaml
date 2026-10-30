@@ -31,7 +31,10 @@ wikifolio:
     - wf0futecus
     - wfcapitala
     - wfumbrella
-  min_weight_pct: 0.5      # Trades mit weniger Gewicht im Depot ignorieren
+  # Gemeldet werden Änderungen im Depot (Vergleich mit dem letzten Lauf), nicht einzelne Teilorders.
+  min_weight_pct: 1.0      # Neu aufgenommen / komplett verkauft erst ab diesem Anteil am Depot (%)
+  min_change_pct: 1.5      # Aufgestockt / reduziert erst ab so vielen Prozentpunkten des Depots
+                           # (berechnet aus der Stückzahl, reine Kursbewegungen zählen nicht)
 
 # ---------- TAGESZUSAMMENFASSUNG (läuft einmal täglich) ----------
 

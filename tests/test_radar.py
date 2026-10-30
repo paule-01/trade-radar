@@ -209,7 +209,6 @@ def test_wikifolio_trades_paging(monkeypatch):
     assert calls == [0, 1, 2]  # stoppt bei pageCount
     assert len(out) == 57 and all(o["orderType"] for o in out)  # Dividenden/Splits raus
     assert len(api.trades("x", 20)) == 20
-    assert w._weight({"weightage": 0.0045}) == pytest.approx(0.45)
 
 
 def test_http_error_never_logs_body():
@@ -231,3 +230,74 @@ def test_http_error_never_logs_body():
     html = R(500, "<html>Angemeldet als max.mustermann@example.com</html>", False)
     assert "mustermann" not in http_error(html) and http_error(html).startswith("HTTP 500")
     assert "Depot" not in http_error(R(403, {"user": {"name": "Depot X"}}, True))
+
+
+def _wf_pos(name, qty, weight, price, isin=None):
+    return {"name": name, "isin": isin or name, "qty": qty, "weight": weight, "price": price,
+            "type": "stock", "lev": False}
+
+
+def test_wikifolio_parse_portfolio_all_groups():
+    from radar.wikifolio import parse_portfolio
+    d = {"totalValue": 1000.0, "groups": [
+        {"type": 620, "items": [{"name": "Berkshire", "isin": "US1", "quantity": 2.0, "percentage": 0.2, "mid": 100}]},
+        {"type": 630, "items": [{"name": "iShares", "isin": "IE1", "quantity": 10.0, "percentage": 0.1, "close": 10}]},
+        {"type": 0, "items": []}]}
+    pos, total = parse_portfolio(d)
+    assert total == 1000 and set(pos) == {"US1", "IE1"}
+    assert pos["US1"]["weight"] == 20 and pos["IE1"]["type"] == "etf" and pos["IE1"]["price"] == 10
+
+
+def test_wikifolio_diff_uses_quantity():
+    from radar.wikifolio import diff_portfolio
+    prev = {"A": _wf_pos("A", 100, 10.0, 10), "B": _wf_pos("B", 50, 5.0, 10),
+            "C": _wf_pos("C", 10, 2.0, 20), "D": _wf_pos("D", 5, 0.5, 10)}
+    cur = {"A": _wf_pos("A", 100, 14.0, 14),   # nur Kurs gestiegen -> keine Meldung
+           "B": _wf_pos("B", 80, 8.0, 10),     # +30 Stück * 10 / 10.000 = 3 Pp -> aufgestockt
+           "C": _wf_pos("C", 9, 1.8, 20),      # -1 Stück = 0,2 Pp -> zu klein
+           "N": _wf_pos("N", 20, 2.0, 10),     # neu, über Schwelle
+           "M": _wf_pos("M", 1, 0.3, 10)}      # neu, unter Schwelle
+    kinds = {c["pos"]["name"]: c["kind"] for c in diff_portfolio(prev, cur, 10_000, 1.0, 1.5)}
+    assert kinds == {"B": "add", "N": "new"}  # D (0,5 %) verkauft, aber unter min_weight
+    prev["D"]["weight"] = 3.0
+    kinds = {c["pos"]["name"]: c["kind"] for c in diff_portfolio(prev, cur, 10_000, 1.0, 1.5)}
+    assert kinds["D"] == "exit"
+    # ohne Stückzahl: Gewicht vergleichen
+    p2, c2 = {"X": _wf_pos("X", None, 6.0, None)}, {"X": _wf_pos("X", None, 3.0, None)}
+    assert diff_portfolio(p2, c2, None, 1.0, 1.5)[0]["kind"] == "reduce"
+
+
+def test_wikifolio_run_portfolio_flow(monkeypatch, capsys):
+    from radar import wikifolio as w
+    nd = {"props": {"pageProps": {"data": {"wikifolio": {"id": "wid", "title": "Testdepot"}, "keyFigures": {}}}}}
+    depots = [
+        ({"US1": _wf_pos("Alpha AG", 100, 10.0, 10, "US1"), "US2": _wf_pos("Beta AG", 50, 5.0, 10, "US2")}, 10_000),
+        ({"US1": _wf_pos("Alpha AG", 300, 30.0, 10, "US1"), "US3": _wf_pos("Gamma AG", 40, 4.0, 10, "US3")}, 10_000),
+    ]
+
+    class Fake:
+        def __init__(self):
+            pass
+
+        def page_data(self, name):
+            return nd
+
+        def trades(self, wf_id, count=20):
+            return [{"isin": "US1", "orderType": "BuyLimit", "executionPrice": 10.5,
+                     "executionDate": "2026-10-30T10:00:00+01:00"}]
+
+        def portfolio(self, name):
+            return depots.pop(0)
+
+    monkeypatch.setattr(w, "Wikifolio", Fake)
+    monkeypatch.setattr(w.time, "sleep", lambda s: None)
+    cfg = {"wikifolios": ["wftest"], "min_weight_pct": 1.0, "min_change_pct": 1.5}
+    w.run(cfg, {})
+    assert "TELEGRAM" not in capsys.readouterr().out  # erster Lauf: nur Ausgangszustand
+    w.run(cfg, {})
+    out = capsys.readouterr().out
+    assert "AUFGESTOCKT: <b>Alpha AG</b>" in out and "Anteil 10,0 % → 30,0 %" in out and "Stück 100 → 300" in out
+    assert "Letzter Trade: Kauf · 30.10. 09:00 UTC · Kurs 10,5" in out
+    assert "NEU IM DEPOT: <b>Gamma AG</b>" in out
+    assert "KOMPLETT VERKAUFT: <b>Beta AG</b>" in out and "Stück 50 → 0" in out
+    assert "Testdepot" in out and "Trade-Risiko" in out

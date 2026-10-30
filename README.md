@@ -50,7 +50,7 @@ Die Schwellen für Gelb und Rot stellst du in `config.yaml` unter `risk:` ein.
 3. Bestätige per SMS-Code und kopiere **API Key** (`ETORO_API_KEY`) und **User Key** (`ETORO_USER_KEY`).
 
 ### 3. wikifolio-Konto (kostenlos)
-Die Handelshistorie sieht man auf wikifolio nur eingeloggt. Lege ein kostenloses Konto an. Zwei-Faktor-Login muss bei diesem Konto **aus** sein. Verwende am besten ein eigenes Passwort, das du nirgends sonst nutzt.
+Depot und Handelshistorie sieht man auf wikifolio nur eingeloggt. Lege ein kostenloses Konto an. Zwei-Faktor-Login muss bei diesem Konto **aus** sein. Verwende am besten ein eigenes Passwort, das du nirgends sonst nutzt.
 
 ### 4. GitHub-Repository
 1. Lege ein Konto auf github.com an. Erstelle dann über **New repository** z. B. `trade-radar` als **Public**. Warum öffentlich, steht unten bei den Kosten. Deine Schlüssel bleiben trotzdem geheim.
@@ -91,7 +91,7 @@ Falls Schritt 4 mit „Permission denied“ beim Speichern scheitert: Gehe zu **
 
 - **Eigene eToro-Trader:** Trage sie unter `etoro: traders:` mit Usernamen ein (der steht in der Profil-URL `etoro.com/people/USERNAME`).
 - **Automatische Auswahl:** `auto_discover` holt die besten Popular Investors aus der eToro-Rangliste, standardmäßig die 15 besten mit Risiko ≤ 6 und mindestens 500 Kopierern. Die Liste wird wöchentlich erneuert.
-- **wikifolios:** Trage die Kürzel unter `wikifolio: wikifolios:` ein, z. B. `wf00trend7`.
+- **wikifolios:** Trage die Kürzel unter `wikifolio: wikifolios:` ein, z. B. `wf00trend7`. Gemeldet wird nicht jede einzelne Order (große wikifolios handeln in vielen kleinen Teilorders), sondern was sich im Depot geändert hat: **neu aufgenommen** oder **komplett verkauft** ab `min_weight_pct` (Standard 1 % des Depots) und **aufgestockt/reduziert** ab `min_change_pct` (Standard 1,5 Prozentpunkte). Verglichen wird die Stückzahl, reine Kursbewegungen lösen also nichts aus.
 - **Politiker filtern:** Unter `only_members:` kannst du z. B. `Pelosi` eintragen.
 - **Schwellen:** Mindestbeträge für Insider-Käufe, die Mindeständerung bei ARK, Gelb/Rot usw.
 
@@ -104,7 +104,7 @@ Falls Schritt 4 mit „Permission denied“ beim Speichern scheitert: Gehe zu **
 ## Grenzen (wichtig)
 
 - **Verzögerung:** GitHub startet Zeitpläne nicht sekundengenau. Rechne mit 5 bis 20 Minuten Verzögerung, in Stoßzeiten auch mehr. Für Meldungen innerhalb von 1 bis 2 Minuten bräuchte man einen kleinen Server für ca. 4 €/Monat. Der Code läuft dort unverändert, man ruft dann einfach `python -m radar.realtime` jede Minute auf.
-- **wikifolio** ist inoffiziell angebunden. Baut wikifolio die Seite um, fällt nur dieser Teil aus.
+- **wikifolio** ist inoffiziell angebunden. Baut wikifolio die Seite um, fällt nur dieser Teil aus. Bei einem Aktiensplit ändert sich die Stückzahl, das kann einmalig als „aufgestockt“ gemeldet werden.
 - **Politiker-Trades** sind bis zu 45 Tage alt. Bei Papier-Meldungen gibt es nur den Link ohne Details.
 - **13F-Fonds:** Das ist der Stand am Quartalsende, also bis zu 45 Tage alt.
 - Die Risiko-Ampel ist eine **Faustregel aus öffentlichen Kennzahlen**, keine Garantie. Gute Trader können auch verlieren.
