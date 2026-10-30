@@ -9,7 +9,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 
-from .common import env, esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
+from .common import env, esc, http_error, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
 from .risk import ASSET_LABEL, TraderProfile, ampel, score_trade, score_trader, trader_facts
 
 BASE = "https://public-api.etoro.com"
@@ -47,7 +47,7 @@ class EToro:
         if r.status_code == 404:
             return None
         if not r.ok:
-            log.error("eToro %s -> HTTP %s: %s", path, r.status_code, r.text[:500])
+            log.error("eToro %s -> %s", path, http_error(r))
         r.raise_for_status()
         return r.json()
 

@@ -28,10 +28,9 @@ wikifolio:
   # wikifolio-Kürzel (steht in der URL, z.B. wikifolio.com/de/de/w/wf00trend7 -> wf00trend7)
   wikifolios:
     - wf0save100
-    - wf00szew01
-    - wfpp999999
     - wf0futecus
     - wfcapitala
+    - wfumbrella
   min_weight_pct: 0.5      # Trades mit weniger Gewicht im Depot ignorieren
 
 # ---------- TAGESZUSAMMENFASSUNG (läuft einmal täglich) ----------

@@ -210,3 +210,24 @@ def test_wikifolio_trades_paging(monkeypatch):
     assert len(out) == 57 and all(o["orderType"] for o in out)  # Dividenden/Splits raus
     assert len(api.trades("x", 20)) == 20
     assert w._weight({"weightage": 0.0045}) == pytest.approx(0.45)
+
+
+def test_http_error_never_logs_body():
+    from radar.common import http_error
+
+    class R:
+        def __init__(self, code, body, is_json):
+            self.status_code, self.text, self._b, self._j = code, str(body), body, is_json
+
+        def json(self):
+            if not self._j:
+                raise ValueError
+            return self._b
+
+    assert http_error(R(422, {"errorCode": "InvalidKey", "errorMessage": "Key is invalid"}, True)) \
+        == "HTTP 422 (InvalidKey Key is invalid)"
+    assert http_error(R(400, {"message": "Page size cannot be bigger than 20."}, True)) \
+        == "HTTP 400 (Page size cannot be bigger than 20.)"
+    html = R(500, "<html>Angemeldet als max.mustermann@example.com</html>", False)
+    assert "mustermann" not in http_error(html) and http_error(html).startswith("HTTP 500")
+    assert "Depot" not in http_error(R(403, {"user": {"name": "Depot X"}}, True))

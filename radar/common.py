@@ -73,6 +73,23 @@ def session(extra_headers: dict | None = None) -> requests.Session:
     return s
 
 
+def http_error(r: requests.Response) -> str:
+    """Statuscode plus kurzes Fehlerfeld aus JSON, nie die ganze Antwort.
+
+    Die Actions-Protokolle öffentlicher Repos sind für alle lesbar; HTML-Fehlerseiten einer
+    angemeldeten Sitzung können Kontonamen enthalten.
+    """
+    msg = None
+    try:
+        d = r.json()
+        if isinstance(d, dict):
+            msg = " ".join(str(d[k]) for k in ("errorCode", "errorMessage", "message", "error", "description")
+                           if d.get(k) and not isinstance(d[k], (dict, list)))
+    except ValueError:
+        msg = "keine JSON-Antwort"
+    return f"HTTP {r.status_code}" + (f" ({msg[:120]})" if msg else "")
+
+
 def get(s: requests.Session, url: str, retries: int = 3, **kw) -> requests.Response:
     """GET mit Wiederholung bei 429/5xx und Beachtung von Retry-After."""
     kw.setdefault("timeout", 30)
@@ -122,12 +139,16 @@ def send_telegram(text: str, silent: bool = False) -> None:
         payload = {"chat_id": chat, "text": c, "parse_mode": "HTML",
                    "disable_web_page_preview": True, "disable_notification": silent}
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        r = requests.post(url, json=payload, timeout=30)
-        if r.status_code == 429:
-            time.sleep(int(r.json().get("parameters", {}).get("retry_after", 5)))
+        try:
             r = requests.post(url, json=payload, timeout=30)
+            if r.status_code == 429:
+                time.sleep(int(r.json().get("parameters", {}).get("retry_after", 5)))
+                r = requests.post(url, json=payload, timeout=30)
+        except requests.RequestException as e:
+            # Fehlertext enthielte die URL mit dem Bot-Token
+            raise RuntimeError(f"Telegram nicht erreichbar: {type(e).__name__}") from None
         if not r.ok:
-            raise RuntimeError(f"Telegram-Fehler {r.status_code}: {r.text[:300]}")
+            raise RuntimeError(f"Telegram-Fehler {http_error(r)}")
         time.sleep(0.5)
 
 

@@ -12,7 +12,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 
-from .common import env, esc, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
+from .common import env, esc, http_error, fmt_pct, get, load_state, log, save_state, send_telegram, session, to_float
 from .risk import ASSET_LABEL, TraderProfile, ampel, score_trade, score_trader, trader_facts
 
 BASE = "https://www.wikifolio.com"
@@ -56,16 +56,6 @@ def _find_key(obj, names: set[str]):
     return None
 
 
-def _login_error(r) -> str:
-    """Nur ein kurzes Fehlerfeld aus der JSON-Antwort, nie die ganze Antwort."""
-    try:
-        d = r.json()
-    except ValueError:
-        return "keine JSON-Antwort"
-    msg = d.get("message") or d.get("error") or d.get("errorCode") if isinstance(d, dict) else None
-    return str(msg)[:80] if msg else "ohne Fehlermeldung"
-
-
 class Wikifolio:
     def __init__(self):
         self.s = session({"accept": "application/json, text/html"})
@@ -80,15 +70,14 @@ class Wikifolio:
                 if r.ok:
                     log.info("wikifolio-Login: HTTP %s, Cookies %s", r.status_code, cookies)
                 else:
-                    # Kein Antworttext: Actions-Protokolle öffentlicher Repos sind für alle lesbar
-                    log.error("wikifolio-Login fehlgeschlagen: HTTP %s (%s)", r.status_code, _login_error(r))
+                    log.error("wikifolio-Login fehlgeschlagen: %s", http_error(r))
             except Exception as e:
                 log.error("wikifolio-Login: %s", e)
 
     def page_data(self, name: str) -> dict | None:
         r = get(self.s, f"{BASE}/de/de/w/{name}")
         if not r.ok:
-            log.error("wikifolio-Seite %s -> HTTP %s: %s", name, r.status_code, r.text[:500])
+            log.error("wikifolio-Seite %s -> %s", name, http_error(r))
             return None
         m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', r.text, re.S)
         if not m:
@@ -104,7 +93,7 @@ class Wikifolio:
                     params={"page": page, "pagesize": PAGE_SIZE, "country": "de", "language": "de"},
                     headers={"accept": "application/json"})
             if not r.ok:
-                log.error("wikifolio tradehistory -> HTTP %s: %s", r.status_code, r.text[:500])
+                log.error("wikifolio tradehistory -> %s", http_error(r))
             r.raise_for_status()
             th = r.json().get("tradeHistory") or {}
             orders = th.get("orders") or []
