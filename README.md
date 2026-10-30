@@ -90,6 +90,7 @@ Falls Schritt 4 mit „Permission denied“ beim Speichern scheitert: Gehe zu **
 ## Anpassen (`config.yaml`, direkt auf GitHub mit dem Stift-Symbol bearbeiten)
 
 - **Eigene eToro-Trader:** Trage sie unter `etoro: traders:` mit Usernamen ein (der steht in der Profil-URL `etoro.com/people/USERNAME`).
+- **Teilpositionen:** Bei eToro ist jeder Nachkauf eine eigene Position. Pro Lauf kommt deshalb **eine Meldung pro Trader und Instrument** (neu gekauft, nachgekauft, verkauft, teilweise verkauft oder umgeschichtet) mit Summe, Anzahl und Ø-Kurs bzw. Ø-Ergebnis. `min_position_pct` gilt für die Summe. Ändert ein Trader mehr als 4 Instrumente auf einmal, kommt eine Sammelmeldung.
 - **Automatische Auswahl:** `auto_discover` holt die besten Popular Investors aus der eToro-Rangliste, standardmäßig die 15 besten mit Risiko ≤ 6 und mindestens 500 Kopierern. Die Liste wird wöchentlich erneuert.
 - **wikifolios:** Trage die Kürzel unter `wikifolio: wikifolios:` ein, z. B. `wf00trend7`. Gemeldet wird nicht jede einzelne Order (große wikifolios handeln in vielen kleinen Teilorders), sondern was sich im Depot geändert hat: **neu aufgenommen** oder **komplett verkauft** ab `min_weight_pct` (Standard 1 % des Depots) und **aufgestockt/reduziert** ab `min_change_pct` (Standard 1,5 Prozentpunkte). Verglichen wird die Stückzahl, reine Kursbewegungen lösen also nichts aus.
 - **Politiker filtern:** Unter `only_members:` kannst du z. B. `Pelosi` eintragen.

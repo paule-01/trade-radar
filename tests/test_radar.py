@@ -65,7 +65,7 @@ def test_etoro_flow(monkeypatch, capsys):
     out = capsys.readouterr().out
     print(out)
     assert "NEU GEKAUFT" in out and "Bitcoin" in out and "Hebel x2" in out
-    assert "VERKAUFT / GESCHLOSSEN" in out and "Apple" in out
+    assert "UMGESCHICHTET" in out and "Apple" in out  # Apple 1 zu, Apple 2 auf -> eine Meldung
     assert "Profil: <b>" in out and "eToro-Risiko 4/10" in out
 
 
@@ -301,3 +301,109 @@ def test_wikifolio_run_portfolio_flow(monkeypatch, capsys):
     assert "NEU IM DEPOT: <b>Gamma AG</b>" in out
     assert "KOMPLETT VERKAUFT: <b>Beta AG</b>" in out and "Stück 50 → 0" in out
     assert "Testdepot" in out and "Trade-Risiko" in out
+
+
+# ---------------------------------------------------------------- eToro: Teilpositionen zusammenfassen
+def _pos(pid, iid, pct, rate, ts="2026-10-30T14:46:00Z", profit=None, buy=True, lev=1):
+    return {"positionId": pid, "instrumentId": iid, "isBuy": buy, "leverage": lev, "investmentPct": pct,
+            "openRate": rate, "netProfit": profit, "stopLossRate": 0, "openTimestamp": ts}
+
+
+def _etoro_two_runs(monkeypatch, capsys, before, after, now="2026-10-30T15:05:00Z", min_pct=0.5):
+    from datetime import datetime
+    from radar import etoro
+    monkeypatch.setenv("ETORO_API_KEY", "x")
+    pf = {"positions": before, "socialTrades": []}
+
+    class Fake:
+        def rankings(self, *a):
+            return []
+
+        def live_portfolio(self, u):
+            return pf
+
+        def trade_info(self, u, period="OneYearAgo"):
+            return {"riskScore": 4, "trades": 60}
+
+        def instruments(self, ids):
+            names = {1002: ("Alphabet", "GOOG"), 1003: ("Coherent", "COHR"), 1004: ("Nvidia", "NVDA"),
+                     1005: ("Tesla", "TSLA"), 1006: ("Amazon", "AMZN"), 1007: ("Meta", "META")}
+            return {i: {"name": names[i][0], "symbol": names[i][1], "type": "stock"} for i in ids if i in names}
+
+    monkeypatch.setattr(etoro, "EToro", Fake)
+    monkeypatch.setattr(etoro.time, "sleep", lambda s: None)
+    monkeypatch.setattr(etoro, "_now", lambda: datetime.fromisoformat(now.replace("Z", "+00:00")).timestamp())
+    cfg = {"traders": ["choose3395"], "min_position_pct": min_pct}
+    etoro.run(cfg, {})
+    capsys.readouterr()
+    pf["positions"] = after
+    etoro.run(cfg, {})
+    out = capsys.readouterr().out
+    print(out)
+    return out
+
+
+def _goog5():
+    return [_pos(10 + i, 1002, 2.0, 160 + i, ts=f"2026-09-0{i + 1}T10:00:00Z", profit=10.0 + i) for i in range(5)]
+
+
+def test_etoro_umgeschichtet_choose3395(monkeypatch, capsys):
+    """5x GOOG geschlossen, 1x GOOG neu -> eine Meldung statt sechs."""
+    out = _etoro_two_runs(monkeypatch, capsys, _goog5(), [_pos(20, 1002, 3.0, 175.5, ts="2026-10-30T14:46:00Z")])
+    assert out.count("TELEGRAM") == 1
+    assert "UMGESCHICHTET: <b>Alphabet</b> (GOOG)" in out
+    assert "5 Positionen geschlossen: 10,0 % des Depots · Ø-Ergebnis +12,0 %" in out
+    assert "1 Position neu eröffnet: Kurs 175,5 · ohne Hebel · 3,0 % des Depots" in out
+    assert "Eröffnet: 30.10. 14:46 UTC" in out and "Verzögerung" not in out
+
+
+def test_etoro_nur_geschlossen(monkeypatch, capsys):
+    out = _etoro_two_runs(monkeypatch, capsys, _goog5(), [])
+    assert out.count("TELEGRAM") == 1
+    assert "VERKAUFT / GESCHLOSSEN: <b>Alphabet</b>" in out
+    assert "5 Positionen · 10,0 % des Depots · Ø-Ergebnis +12,0 %" in out
+
+
+def test_etoro_teilweise_geschlossen_gewichtet(monkeypatch, capsys):
+    before = _goog5()
+    before[0]["investmentPct"] = 6.0  # Ø-Ergebnis gewichtet: (6*10 + 2*11) / 8 = 10,25
+    out = _etoro_two_runs(monkeypatch, capsys, before, before[2:])
+    assert out.count("TELEGRAM") == 1
+    assert "TEILWEISE VERKAUFT" in out and "2 Positionen · 8,0 % des Depots · Ø-Ergebnis +10,2 %" in out
+    assert "Noch im Depot: 3 Positionen" in out
+
+
+def test_etoro_nur_geoeffnet_mit_spanne_und_verzoegerung(monkeypatch, capsys):
+    # Coherent: zwei Teilkäufe -> eine Meldung; Schwelle gilt für die Summe (0,3 + 0,3 >= 0,5)
+    new = [_pos(30, 1003, 0.3, 100, ts="2026-10-30T14:46:00Z"), _pos(31, 1003, 0.3, 300, ts="2026-10-30T15:00:00Z")]
+    out = _etoro_two_runs(monkeypatch, capsys, [], new, now="2026-10-30T15:45:00Z")
+    assert out.count("TELEGRAM") == 1
+    assert "NEU GEKAUFT: <b>Coherent</b>" in out
+    assert "Ø-Kurs 150 · ohne Hebel · 0,6 % des Depots · 2 Positionen" in out  # 0,6 / (0,3/100 + 0,3/300)
+    assert "Eröffnet: 30.10. 14:46–15:00 UTC" in out
+    assert "Gemeldet mit Verzögerung: ca. 45 Min." in out
+
+
+def test_etoro_nachgekauft_risiko_summe(monkeypatch, capsys):
+    old = [_pos(40, 1003, 4.0, 90, ts="2026-10-01T10:00:00Z")]
+    new = old + [_pos(41, 1003, 6.0, 100, lev=2), _pos(42, 1003, 5.0, 101, buy=False)]
+    out = _etoro_two_runs(monkeypatch, capsys, old, new)
+    assert out.count("TELEGRAM") == 1
+    assert "SHORT ERÖFFNET" in out  # eine der neuen Positionen ist short
+    assert "Hebel x2" in out and "große Position (11,0 %)" in out and "Leerverkauf" in out
+
+
+def test_etoro_unter_schwelle_ignoriert(monkeypatch, capsys):
+    out = _etoro_two_runs(monkeypatch, capsys, [], [_pos(50, 1003, 0.2, 100), _pos(51, 1003, 0.2, 101)])
+    assert "TELEGRAM" not in out
+
+
+def test_etoro_sammelmeldung(monkeypatch, capsys):
+    before = _goog5()
+    after = [_pos(20, 1002, 3.0, 175.5)] + [_pos(60 + i, 1003 + i, 2.0, 50 + i) for i in range(5)]
+    out = _etoro_two_runs(monkeypatch, capsys, before, after)
+    assert out.count("TELEGRAM") == 1 and out.count("👤") == 1
+    assert "6 Instrumente geändert" in out
+    for name in ("Alphabet", "Coherent", "Nvidia", "Tesla", "Amazon", "Meta"):
+        assert name in out
+    assert "UMGESCHICHTET: <b>Alphabet</b> (GOOG) · −10,0 % / +3,0 % · 6 Pos." in out

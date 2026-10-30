@@ -16,6 +16,8 @@ BASE = "https://public-api.etoro.com"
 TYPE_MAP = {1: "currency", 2: "commodity", 4: "index", 5: "stock", 6: "etf", 10: "crypto"}
 PROFILE_MAX_AGE_H = 24        # Trader-Kennzahlen 1x täglich auffrischen
 DISCOVERY_MAX_AGE_H = 24 * 7  # Rangliste 1x pro Woche neu laden
+DIGEST_FROM = 4               # mehr geänderte Instrumente pro Lauf -> eine Sammelmeldung
+LATE_AFTER_MIN = 30           # ältere Trades bekommen einen Verzögerungshinweis
 
 
 # tradeinfo liefert Prozent (44.71 = 44,71 %), die Rangliste dagegen "gain" als Bruch (0.86).
@@ -174,7 +176,8 @@ def run(cfg: dict, risk_cfg: dict) -> None:
         prev_pos = prev.get("positions", {})
         opened = [current[k] for k in current if k not in prev_pos]
         closed = [prev_pos[k] for k in prev_pos if k not in current]
-        held_instr = {p["instrumentId"] for k, p in prev_pos.items() if k in current}
+        if not cfg.get("notify_closes", True):
+            closed = []
 
         need = {p["instrumentId"] for p in opened + closed} - {int(i) for i in st["instruments"]}
         if need:
@@ -184,16 +187,11 @@ def run(cfg: dict, risk_cfg: dict) -> None:
             except Exception as e:
                 log.error("Instrumente: %s", e)
 
-        for p in opened:
-            if (to_float(p.get("investmentPct")) or 0) < min_pct:
-                continue
-            add = p["instrumentId"] in held_instr
-            messages.append(_msg(user, ti, profile, p, st["instruments"], "add" if add else "open", risk_cfg))
-        if cfg.get("notify_closes", True):
-            for p in closed:
-                if (to_float(p.get("investmentPct")) or 0) < min_pct:
-                    continue
-                messages.append(_msg(user, ti, profile, p, st["instruments"], "close", risk_cfg))
+        changes = group_changes(prev_pos, current, opened, closed, min_pct)
+        if len(changes) > DIGEST_FROM:
+            messages.append(_digest(user, ti, profile, changes, st["instruments"], risk_cfg))
+        else:
+            messages += [_msg(user, ti, profile, ch, st["instruments"], risk_cfg) for ch in changes]
 
         prev_m = prev.get("mirrors", {})
         for k, m in mirrors.items():
@@ -216,57 +214,214 @@ def _slim(p: dict) -> dict:
     return {k: p.get(k) for k in keys}
 
 
-def _msg(user: str, ti: dict, profile: TraderProfile, p: dict, instr: dict,
-         kind: str, risk_cfg: dict) -> str:
-    meta = instr.get(str(p["instrumentId"]), {})
-    name = meta.get("name") or f"Instrument #{p['instrumentId']}"
+# ---------------------------------------------------------------- Zusammenfassen
+# Jeder Nachkauf ist bei eToro eine eigene positionId. Gemeldet wird deshalb pro Trader und
+# Instrument nur eine Änderung je Lauf, egal wie viele Teilpositionen dahinterstecken.
+def group_changes(prev_pos: dict, current: dict, opened: list[dict], closed: list[dict],
+                  min_pct: float) -> list[dict]:
+    held_before = {p["instrumentId"] for p in prev_pos.values()}
+    new_ids = {str(p["positionId"]) for p in opened}
+    groups: dict[int, dict] = {}
+    for key, ps in (("opened", opened), ("closed", closed)):
+        for p in ps:
+            g = groups.setdefault(p["instrumentId"], {"iid": p["instrumentId"], "opened": [], "closed": []})
+            g[key].append(p)
+    out = []
+    for iid, g in groups.items():
+        # Schwelle gilt für die Summe der Teilpositionen
+        if _sum_pct(g["opened"]) < min_pct and _sum_pct(g["closed"]) < min_pct:
+            continue
+        g["remaining"] = sum(1 for k, p in current.items() if p["instrumentId"] == iid and k not in new_ids)
+        if g["opened"] and g["closed"]:
+            g["kind"] = "swap"
+        elif g["opened"]:
+            g["kind"] = "add" if iid in held_before else "open"
+        else:
+            g["kind"] = "partial" if g["remaining"] else "close"
+        out.append(g)
+    return out
+
+
+def _sum_pct(ps: list[dict]) -> float:
+    return sum(to_float(p.get("investmentPct")) or 0 for p in ps)
+
+
+def _avg_rate(ps: list[dict]) -> float | None:
+    """Ø-Einstiegskurs gewichtet nach investiertem Anteil (= Betrag / Stückzahl)."""
+    rows = [(to_float(p.get("investmentPct")) or 0, to_float(p.get("openRate"))) for p in ps]
+    rows = [(w, r) for w, r in rows if r]
+    if not rows:
+        return None
+    if sum(w for w, _ in rows) <= 0:
+        return sum(r for _, r in rows) / len(rows)
+    return sum(w for w, _ in rows) / sum(w / r for w, r in rows)
+
+
+def _avg_result(ps: list[dict]) -> float | None:
+    """Ø-Ergebnis in %, gewichtet nach investmentPct."""
+    rows = [(to_float(p.get("investmentPct")) or 0, to_float(p.get("netProfit"))) for p in ps]
+    rows = [(w, v) for w, v in rows if v is not None]
+    if not rows:
+        return None
+    tw = sum(w for w, _ in rows)
+    if tw <= 0:
+        return sum(v for _, v in rows) / len(rows)
+    return sum(w * v for w, v in rows) / tw
+
+
+def _times(ps: list[dict]) -> list[datetime]:
+    out = []
+    for p in ps:
+        ts = p.get("openTimestamp")
+        if not ts:
+            continue
+        try:
+            out.append(datetime.fromisoformat(str(ts).replace("Z", "+00:00")).astimezone(timezone.utc))
+        except ValueError:
+            pass
+    return sorted(out)
+
+
+def _num(v: float | None) -> str:
+    return f"{v:.6g}".replace(".", ",") if v else "?"
+
+
+def _n(count: int) -> str:
+    return f"{count} Position" + ("" if count == 1 else "en")
+
+
+def _risk(ch: dict, instr: dict, risk_cfg: dict, profile: TraderProfile):
+    asset = instr.get(str(ch["iid"]), {}).get("type", "unknown")
+    ps = ch["opened"] or ch["closed"]  # Risiko der neuen Positionen, bei reinem Verkauf der alten
+    lev = max((to_float(p.get("leverage")) or 1 for p in ps), default=1)
+    short = any(p.get("isBuy") is False for p in ps)
+    has_stop = all(has_stop_loss(to_float(p.get("stopLossRate")), to_float(p.get("openRate")),
+                                 p.get("isBuy") is False) for p in ps)
+    tr = score_trade(asset, lev, short, _sum_pct(ps), has_stop)
+    return tr, ampel(tr, profile, risk_cfg), lev, short
+
+
+def _title(ch: dict, instr: dict) -> str:
+    meta = instr.get(str(ch["iid"]), {})
+    name = meta.get("name") or f"Instrument #{ch['iid']}"
     sym = meta.get("symbol", "")
-    asset = meta.get("type", "unknown")
-    lev = to_float(p.get("leverage")) or 1
-    pct = to_float(p.get("investmentPct"))
-    short = p.get("isBuy") is False
-    sl = to_float(p.get("stopLossRate"))
-    has_stop = has_stop_loss(sl, to_float(p.get("openRate")), short)
+    return f"<b>{esc(name)}</b>" + (f" ({esc(sym)})" if sym and sym != name else "")
 
-    tr = score_trade(asset, lev, short, pct, has_stop)
-    dot, label, total = ampel(tr, profile, risk_cfg)
 
+def _action(ch: dict, short: bool) -> str:
+    kind = ch["kind"]
+    if kind == "swap":
+        return "🔄 UMGESCHICHTET"
     if kind == "close":
-        action = "🔻 VERKAUFT / GESCHLOSSEN"
-        np_ = to_float(p.get("netProfit"))
-        extra = f"Ergebnis zuletzt: {fmt_pct(np_, sign=True)}" if np_ is not None else ""
-    else:
-        action = ("➕ NACHGEKAUFT" if kind == "add" else "🆕 NEU GEKAUFT") if not short else "📉 SHORT ERÖFFNET"
-        extra = ""
+        return "🔻 VERKAUFT / GESCHLOSSEN"
+    if kind == "partial":
+        return "➖ TEILWEISE VERKAUFT"
+    if short:
+        return "📉 SHORT ERÖFFNET"
+    return "➕ NACHGEKAUFT" if kind == "add" else "🆕 NEU GEKAUFT"
 
-    rate = to_float(p.get("openRate"))
-    details = [("Einstieg " if kind == "close" else "Kurs ") + (f"{rate:g}".replace(".", ",") if rate else "?")]
-    details.append(f"Hebel x{lev:g}" if lev > 1 else "ohne Hebel")
-    if pct is not None:
-        details.append(f"{fmt_pct(pct)} des Depots")
-    if has_stop:
-        details.append(f"Stop-Loss {sl:g}".replace(".", ","))
+
+def _open_part(ps: list[dict], lev: float, count: bool = True) -> str:
+    rate = _avg_rate(ps)
+    parts = [("Kurs " if len(ps) == 1 else "Ø-Kurs ") + _num(rate)]
+    parts.append(f"Hebel x{lev:g}" if lev > 1 else "ohne Hebel")
+    parts.append(f"{fmt_pct(_sum_pct(ps))} des Depots")
+    if count and len(ps) > 1:
+        parts.append(_n(len(ps)))
+    return " · ".join(parts)
+
+
+def _close_part(ps: list[dict], count: bool = True) -> str:
+    parts = ([_n(len(ps))] if count else []) + [f"{fmt_pct(_sum_pct(ps))} des Depots"]
+    res = _avg_result(ps)
+    if res is not None:
+        parts.append(("Ergebnis " if len(ps) == 1 else "Ø-Ergebnis ") + fmt_pct(res, sign=True))
+    return " · ".join(parts)
+
+
+def _time_lines(ps: list[dict]) -> list[str]:
+    ts = _times(ps)
+    if not ts:
+        return []
+    a, b = ts[0], ts[-1]
+    if a == b:
+        span = f"{a:%d.%m. %H:%M}"
+    elif a.date() == b.date():
+        span = f"{a:%d.%m. %H:%M}–{b:%H:%M}"
+    else:
+        span = f"{a:%d.%m. %H:%M}–{b:%d.%m. %H:%M}"
+    lines = [f"Eröffnet: {span} UTC"]
+    late = (_now() - b.timestamp()) / 60
+    if late > LATE_AFTER_MIN:
+        lines.append(f"Gemeldet mit Verzögerung: ca. {late:.0f} Min.")
+    return lines
+
+
+def _who(user: str, ti: dict, profile: TraderProfile) -> str:
     full = ti.get("fullName")
     who = f"<b>{esc(user)}</b>" + (f" ({esc(full)})" if full else "")
+    return f"👤 {who} – Profil: <b>{profile.label}</b>" + (f", {profile.activity}" if profile.activity else "")
+
+
+def _msg(user: str, ti: dict, profile: TraderProfile, ch: dict, instr: dict, risk_cfg: dict) -> str:
+    tr, (dot, label, total), lev, short = _risk(ch, instr, risk_cfg, profile)
+    asset = instr.get(str(ch["iid"]), {}).get("type", "unknown")
     lines = [
         f"{dot} <b>{label}</b> · eToro · Gesamtrisiko {total:.0f}/100",
-        f"👤 {who} – Profil: <b>{profile.label}</b>" + (f", {profile.activity}" if profile.activity else ""),
-        f"{action}: <b>{esc(name)}</b>" + (f" ({esc(sym)})" if sym and sym != name else "")
-        + f" · {ASSET_LABEL.get(asset, 'Wertpapier')}",
-        " · ".join(details),
+        _who(user, ti, profile),
+        f"{_action(ch, short)}: {_title(ch, instr)} · {ASSET_LABEL.get(asset, 'Wertpapier')}",
     ]
-    if extra:
-        lines.append(extra)
+    if ch["kind"] == "swap":
+        lines.append(f"🔻 {_n(len(ch['closed']))} geschlossen: " + _close_part(ch["closed"], count=False))
+        lines.append(f"🆕 {_n(len(ch['opened']))} neu eröffnet: " + _open_part(ch["opened"], lev, count=False))
+    elif ch["opened"]:
+        lines.append(_open_part(ch["opened"], lev))
+        if len(ch["opened"]) == 1:
+            p = ch["opened"][0]
+            sl = to_float(p.get("stopLossRate"))
+            if has_stop_loss(sl, to_float(p.get("openRate")), short):
+                lines[-1] += f" · Stop-Loss {_num(sl)}"
+    else:
+        lines.append(_close_part(ch["closed"]))
+        if ch["kind"] == "partial":
+            lines.append(f"Noch im Depot: {_n(ch['remaining'])}")
     lines.append(f"Trade-Risiko {tr.score:.0f}/100: {esc(', '.join(tr.reasons))}")
     facts = trader_facts(profile)
     if facts:
         lines.append(f"Trader: {esc(facts)}")
-    ts = p.get("openTimestamp")
-    if ts and kind != "close":
-        try:
-            dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00")).astimezone(timezone.utc)
-            lines.append(f"Eröffnet: {dt:%d.%m. %H:%M} UTC")
-        except ValueError:
-            pass
+    lines += _time_lines(ch["opened"])
+    lines.append(f"https://www.etoro.com/people/{esc(user)}/portfolio")
+    return "\n".join(lines)
+
+
+def _digest(user: str, ti: dict, profile: TraderProfile, changes: list[dict], instr: dict,
+            risk_cfg: dict) -> str:
+    """Sammelmeldung: Kopf einmal (Ampel des riskantesten Trades), dann eine Zeile pro Instrument."""
+    rows, worst = [], None
+    for ch in changes:
+        tr, (dot, label, total), lev, short = _risk(ch, instr, risk_cfg, profile)
+        if worst is None or total > worst[2]:
+            worst = (dot, label, total)
+        if ch["kind"] == "swap":
+            info = f"−{fmt_pct(_sum_pct(ch['closed']))} / +{fmt_pct(_sum_pct(ch['opened']))}"
+        elif ch["opened"]:
+            info = (f"{fmt_pct(_sum_pct(ch['opened']))} · Kurs {_num(_avg_rate(ch['opened']))}"
+                    + (f" · Hebel x{lev:g}" if lev > 1 else ""))
+        else:
+            res = _avg_result(ch["closed"])
+            info = fmt_pct(_sum_pct(ch["closed"])) + (f" · Ergebnis {fmt_pct(res, sign=True)}" if res is not None else "")
+        n = len(ch["opened"]) + len(ch["closed"])
+        rows.append(f"{dot} {_action(ch, short)}: {_title(ch, instr)} · {info}" + (f" · {n} Pos." if n > 1 else ""))
+    dot, label, total = worst
+    lines = [
+        f"{dot} <b>{label}</b> · eToro · Gesamtrisiko bis {total:.0f}/100",
+        _who(user, ti, profile),
+        f"📋 <b>{len(changes)} Instrumente geändert:</b>",
+        *rows,
+    ]
+    facts = trader_facts(profile)
+    if facts:
+        lines.append(f"Trader: {esc(facts)}")
+    lines += _time_lines([p for ch in changes for p in ch["opened"]])
     lines.append(f"https://www.etoro.com/people/{esc(user)}/portfolio")
     return "\n".join(lines)
