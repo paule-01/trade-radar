@@ -57,7 +57,7 @@ daily:
   congress:
     enabled: true
     house: true
-    senate: true
+    senate: false
     # Leer = alle Abgeordneten. Sonst nur diese Nachnamen:
     only_members: []
       # - Pelosi
