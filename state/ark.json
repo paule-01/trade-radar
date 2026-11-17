@@ -269,701 +269,701 @@
   }
  },
  "ARKG": {
-  "date": "11/16/2026",
+  "date": "11/17/2026",
   "holdings": {
    "ABSI": {
     "company": "ABSCI CORP",
-    "shares": 10871116.0,
-    "value": 91860930.2,
-    "weight": 4.75
+    "shares": 11040782.0,
+    "value": 82529845.45,
+    "weight": 4.47
    },
    "ADPT": {
     "company": "ADAPTIVE BIOTECHNOLOGIES",
-    "shares": 1972666.0,
-    "value": 57286220.64,
-    "weight": 2.96
+    "shares": 2003452.0,
+    "value": 55836207.24,
+    "weight": 3.02
    },
    "ALMR": {
     "company": "ALAMAR BIOSCIENCES INC",
-    "shares": 1206549.0,
-    "value": 37173774.69,
-    "weight": 1.92
+    "shares": 1225379.0,
+    "value": 37435328.45,
+    "weight": 2.03
    },
    "ARCT UQ": {
     "company": "ARCTURUS THERAPEUTICS HOLDIN",
-    "shares": 3171356.0,
-    "value": 26512536.16,
-    "weight": 1.37
+    "shares": 3220846.0,
+    "value": 26765230.26,
+    "weight": 1.45
    },
    "BEAM": {
     "company": "BEAM THERAPEUTICS INC",
     "shares": 3219206.0,
-    "value": 73494472.98,
-    "weight": 3.8
+    "value": 67410173.64,
+    "weight": 3.65
    },
    "BFLY": {
     "company": "BUTTERFLY NETWORK INC",
-    "shares": 5302799.0,
-    "value": 32241017.92,
+    "shares": 5385553.0,
+    "value": 30751507.63,
     "weight": 1.67
    },
    "CDNA": {
     "company": "CAREDX INC",
-    "shares": 905340.0,
-    "value": 70507879.2,
-    "weight": 3.64
+    "shares": 919466.0,
+    "value": 67783033.52,
+    "weight": 3.67
    },
    "CERS": {
     "company": "CERUS CORP",
     "shares": 8308352.0,
-    "value": 16492078.72,
-    "weight": 0.85
+    "value": 15453534.72,
+    "weight": 0.84
    },
    "CMPS": {
     "company": "COMPASS PATHWAYS PLC",
-    "shares": 5896274.0,
-    "value": 53125428.74,
-    "weight": 2.74
+    "shares": 5988296.0,
+    "value": 49523207.92,
+    "weight": 2.68
    },
    "CRSP": {
     "company": "CRISPR THERAPEUTICS AG",
     "shares": 2376723.0,
-    "value": 100392779.52,
-    "weight": 5.19
+    "value": 95948307.51,
+    "weight": 5.2
    },
    "FRNM": {
     "company": "FREENOME INC",
-    "shares": 1849330.0,
-    "value": 19251525.3,
-    "weight": 0.99
+    "shares": 1878184.0,
+    "value": 18950876.56,
+    "weight": 1.03
    },
    "GENB": {
     "company": "GENERATE BIOMEDICINES INC",
-    "shares": 1698712.0,
-    "value": 20503453.84,
-    "weight": 1.06
+    "shares": 1725214.0,
+    "value": 18097494.86,
+    "weight": 0.98
    },
    "GH": {
     "company": "GUARDANT HEALTH INC",
-    "shares": 651060.0,
-    "value": 98765802.0,
-    "weight": 5.1
+    "shares": 661210.0,
+    "value": 95234076.3,
+    "weight": 5.16
    },
    "IAM": {
     "company": "IAMBIC THERAPEUTICS INC",
-    "shares": 1746216.0,
-    "value": 22875429.6,
-    "weight": 1.18
+    "shares": 1773460.0,
+    "value": 21015501.0,
+    "weight": 1.14
    },
    "ILMN": {
     "company": "ILLUMINA INC",
-    "shares": 419029.0,
-    "value": 86743193.29,
-    "weight": 4.48
+    "shares": 425567.0,
+    "value": 84262266.0,
+    "weight": 4.56
    },
    "IONS": {
     "company": "IONIS PHARMACEUTICALS INC",
-    "shares": 942368.0,
-    "value": 27385214.08,
-    "weight": 1.41
+    "shares": 957068.0,
+    "value": 26807474.68,
+    "weight": 1.45
    },
    "KYMR": {
     "company": "KYMERA THERAPEUTICS INC",
-    "shares": 127073.0,
-    "value": 16210702.61,
-    "weight": 0.84
+    "shares": 129047.0,
+    "value": 16240564.95,
+    "weight": 0.88
    },
    "LLY": {
     "company": "ELI LILLY & CO",
-    "shares": 64669.0,
-    "value": 93349701.5,
-    "weight": 4.82
+    "shares": 65677.0,
+    "value": 94027790.59,
+    "weight": 5.09
    },
    "MASS": {
     "company": "908 DEVICES INC",
-    "shares": 2117822.0,
-    "value": 20627586.28,
+    "shares": 2150876.0,
+    "value": 19766550.44,
     "weight": 1.07
    },
    "NRIX": {
     "company": "NURIX THERAPEUTICS INC",
-    "shares": 2787608.0,
-    "value": 43152171.84,
-    "weight": 2.23
+    "shares": 2831106.0,
+    "value": 41702191.38,
+    "weight": 2.26
    },
    "NTLA": {
     "company": "INTELLIA THERAPEUTICS INC",
     "shares": 3497291.0,
-    "value": 33923722.7,
-    "weight": 1.75
+    "value": 34483289.26,
+    "weight": 1.87
    },
    "NTRA": {
     "company": "NATERA INC",
-    "shares": 283131.0,
-    "value": 90344270.79,
-    "weight": 4.67
+    "shares": 287541.0,
+    "value": 82949827.68,
+    "weight": 4.49
    },
    "PACB": {
     "company": "PACIFIC BIOSCIENCES OF CALIF",
     "shares": 12542409.0,
-    "value": 24583121.64,
-    "weight": 1.27
+    "value": 23078032.56,
+    "weight": 1.25
    },
    "PRME": {
     "company": "PRIME MEDICINE INC",
-    "shares": 10096099.0,
-    "value": 43110342.73,
-    "weight": 2.23
+    "shares": 10253669.0,
+    "value": 42962873.11,
+    "weight": 2.33
    },
    "QSI": {
     "company": "QUANTUM-SI INC",
-    "shares": 7514733.0,
-    "value": 8641942.95,
-    "weight": 0.45
+    "shares": 7632011.0,
+    "value": 8089931.66,
+    "weight": 0.44
    },
    "RXRX": {
     "company": "RECURSION PHARMACEUTICALS-A",
-    "shares": 16472346.0,
-    "value": 52464422.01,
-    "weight": 2.71
+    "shares": 16729428.0,
+    "value": 48598988.34,
+    "weight": 2.63
    },
    "SCTX": {
     "company": "SCRIBE THERAPEUTICS INC",
-    "shares": 1559884.0,
-    "value": 25519702.24,
-    "weight": 1.32
+    "shares": 1599889.0,
+    "value": 24590293.93,
+    "weight": 1.33
    },
    "SDGR": {
     "company": "SCHRODINGER INC",
-    "shares": 2426729.0,
-    "value": 71661307.37,
-    "weight": 3.7
+    "shares": 2464599.0,
+    "value": 67431428.64,
+    "weight": 3.65
    },
    "TEM": {
     "company": "TEMPUS AI INC-CL A",
-    "shares": 2758877.0,
-    "value": 197535593.2,
-    "weight": 10.21
+    "shares": 2801927.0,
+    "value": 181452792.52,
+    "weight": 9.83
    },
    "TWST": {
     "company": "TWIST BIOSCIENCE CORP",
-    "shares": 1314683.0,
-    "value": 146718622.8,
-    "weight": 7.58
+    "shares": 1370221.0,
+    "value": 143928013.84,
+    "weight": 7.79
    },
    "TXG": {
     "company": "10X GENOMICS INC-CLASS A",
-    "shares": 2644256.0,
-    "value": 153869256.64,
-    "weight": 7.95
+    "shares": 2626038.0,
+    "value": 144405829.62,
+    "weight": 7.82
    },
    "VCYT": {
     "company": "VERACYTE INC",
-    "shares": 1851599.0,
-    "value": 45049403.67,
-    "weight": 2.33
+    "shares": 1880495.0,
+    "value": 45150684.95,
+    "weight": 2.44
    },
    "WGS": {
     "company": "GENEDX HOLDINGS CORP",
-    "shares": 621622.0,
-    "value": 32554344.14,
-    "weight": 1.68
+    "shares": 631324.0,
+    "value": 32210150.48,
+    "weight": 1.74
    },
    "X9USDGSFT": {
     "company": "GOLDMAN FS TRSY OBLIG INST 468",
-    "shares": 1662041.0,
-    "value": 1662041.33,
-    "weight": 0.09
+    "shares": 1971137.0,
+    "value": 1971137.04,
+    "weight": 0.11
    }
   }
  },
  "ARKK": {
-  "date": "11/16/2026",
+  "date": "11/17/2026",
   "holdings": {
    "ACHR": {
     "company": "ARCHER AVIATION INC-A",
-    "shares": 32315397.0,
-    "value": 130231049.91,
-    "weight": 1.23
+    "shares": 35633627.0,
+    "value": 133269764.98,
+    "weight": 1.18
    },
    "AMD": {
     "company": "ADVANCED MICRO DEVICES",
-    "shares": 480271.0,
-    "value": 256493530.26,
-    "weight": 2.42
+    "shares": 529441.0,
+    "value": 266986507.48,
+    "weight": 2.37
    },
    "AMZN": {
     "company": "AMAZON.COM INC",
-    "shares": 1070935.0,
-    "value": 285575527.1,
+    "shares": 1180897.0,
+    "value": 304376201.75,
     "weight": 2.7
    },
    "ARKY": {
     "company": "ARK ACTIVE AUTOCALL INC ETF",
     "shares": 3897454.0,
-    "value": 74753167.72,
-    "weight": 0.71
+    "value": 72258797.16,
+    "weight": 0.64
    },
    "BEAM": {
     "company": "BEAM THERAPEUTICS INC",
     "shares": 11889547.0,
-    "value": 271438358.01,
-    "weight": 2.57
+    "value": 248967114.18,
+    "weight": 2.21
    },
    "BLSH": {
     "company": "BULLISH",
-    "shares": 6843976.0,
-    "value": 153921020.24,
-    "weight": 1.45
+    "shares": 7516001.0,
+    "value": 148441019.75,
+    "weight": 1.32
    },
    "BMNR": {
     "company": "BITMINE IMMERSION TECHNOLOGI",
-    "shares": 9679491.0,
-    "value": 170165451.78,
-    "weight": 1.61
+    "shares": 10673321.0,
+    "value": 173548199.46,
+    "weight": 1.54
    },
    "BREADUMMY": {
     "company": "BRERA HOLDINGS PLC WTS",
     "shares": 431626.0,
-    "value": 461839.5,
+    "value": 414360.67,
     "weight": 0.0
    },
    "BWXT": {
     "company": "BWX TECHNOLOGIES INC",
-    "shares": 937621.0,
-    "value": 115299254.37,
-    "weight": 1.09
+    "shares": 1033875.0,
+    "value": 121056423.75,
+    "weight": 1.07
    },
    "CBRS": {
     "company": "CEREBRAS SYSTEMS INC - A",
-    "shares": 2217563.0,
-    "value": 241093449.36,
-    "weight": 2.28
+    "shares": 2445235.0,
+    "value": 246944282.65,
+    "weight": 2.19
    },
    "CERS": {
     "company": "CERUS CORP",
     "shares": 16872255.0,
-    "value": 33491426.18,
-    "weight": 0.32
+    "value": 31382394.3,
+    "weight": 0.28
    },
    "COIN": {
     "company": "COINBASE GLOBAL INC -CLASS A",
-    "shares": 3178625.0,
-    "value": 405735588.13,
-    "weight": 3.83
+    "shares": 3504935.0,
+    "value": 420031410.4,
+    "weight": 3.72
    },
    "CRCL": {
     "company": "CIRCLE INTERNET GROUP INC",
-    "shares": 7365514.0,
-    "value": 458134970.8,
-    "weight": 4.33
+    "shares": 8302372.0,
+    "value": 478631745.8,
+    "weight": 4.24
    },
    "CRSP": {
     "company": "CRISPR THERAPEUTICS AG",
     "shares": 10308443.0,
-    "value": 435428632.32,
-    "weight": 4.11
+    "value": 416151843.91,
+    "weight": 3.69
    },
    "CRWV": {
     "company": "COREWEAVE INC-CL A",
-    "shares": 4781358.0,
-    "value": 254033550.54,
-    "weight": 2.4
+    "shares": 5272164.0,
+    "value": 262975540.32,
+    "weight": 2.33
    },
    "GOOG": {
     "company": "ALPHABET INC-CL C",
-    "shares": 377571.0,
-    "value": 110447068.92,
+    "shares": 416311.0,
+    "value": 117091631.86,
     "weight": 1.04
    },
    "HOOD": {
     "company": "ROBINHOOD MARKETS INC - A",
-    "shares": 3921284.0,
-    "value": 305311172.24,
-    "weight": 2.89
+    "shares": 4323882.0,
+    "value": 311578936.92,
+    "weight": 2.76
    },
    "ILMN": {
     "company": "ILLUMINA INC",
-    "shares": 507992.0,
-    "value": 105159423.92,
-    "weight": 0.99
+    "shares": 560142.0,
+    "value": 110908116.0,
+    "weight": 0.98
    },
    "KTOS": {
     "company": "KRATOS DEFENSE & SECURITY",
-    "shares": 3572779.0,
-    "value": 121152935.89,
-    "weight": 1.14
+    "shares": 3939617.0,
+    "value": 124728274.22,
+    "weight": 1.11
    },
    "META": {
     "company": "META PLATFORMS INC-CLASS A",
-    "shares": 415251.0,
-    "value": 266462414.19,
-    "weight": 2.52
+    "shares": 457865.0,
+    "value": 286811214.65,
+    "weight": 2.54
    },
    "NET": {
     "company": "CLOUDFLARE INC - CLASS A",
-    "shares": 449856.0,
-    "value": 137570463.36,
-    "weight": 1.3
+    "shares": 496046.0,
+    "value": 145634145.14,
+    "weight": 1.29
    },
    "NTLA": {
     "company": "INTELLIA THERAPEUTICS INC",
     "shares": 14063687.0,
-    "value": 136417763.9,
-    "weight": 1.29
+    "value": 138667953.82,
+    "weight": 1.23
    },
    "NTRA": {
     "company": "NATERA INC",
-    "shares": 433842.0,
-    "value": 138434643.78,
-    "weight": 1.31
+    "shares": 478244.0,
+    "value": 137963829.12,
+    "weight": 1.22
    },
    "NVDA": {
     "company": "NVIDIA CORP",
-    "shares": 2255659.0,
-    "value": 367334068.15,
-    "weight": 3.47
+    "shares": 1985472.0,
+    "value": 310011598.08,
+    "weight": 2.75
    },
    "PACB": {
     "company": "PACIFIC BIOSCIENCES OF CALIF",
     "shares": 27662849.0,
-    "value": 54219184.04,
-    "weight": 0.51
+    "value": 50899642.16,
+    "weight": 0.45
    },
    "PLTR": {
     "company": "PALANTIR TECHNOLOGIES INC-A",
-    "shares": 1652770.0,
-    "value": 277648832.3,
-    "weight": 2.62
+    "shares": 1822332.0,
+    "value": 292283829.48,
+    "weight": 2.59
    },
    "PPKALSHIC": {
     "company": "KALSHI INC.",
     "shares": 90024.0,
     "value": 95999805.72,
-    "weight": 0.91
+    "weight": 0.85
    },
    "PPOPENAIC": {
     "company": "OPENAI GROUP PBC SERIES C",
     "shares": 254476.0,
     "value": 252456045.85,
-    "weight": 2.39
+    "weight": 2.24
    },
    "RKLB": {
     "company": "ROCKET LAB CORP",
-    "shares": 3182253.0,
-    "value": 195804027.09,
-    "weight": 1.85
+    "shares": 3508861.0,
+    "value": 201303355.57,
+    "weight": 1.78
    },
    "RXRX": {
     "company": "RECURSION PHARMACEUTICALS-A",
-    "shares": 46565618.0,
-    "value": 148311493.33,
-    "weight": 1.4
+    "shares": 51347326.0,
+    "value": 149163982.03,
+    "weight": 1.32
    },
    "SHOP": {
     "company": "SHOPIFY INC - CLASS A",
-    "shares": 2443698.0,
-    "value": 359443538.82,
-    "weight": 3.4
+    "shares": 2764802.0,
+    "value": 408665383.62,
+    "weight": 3.62
    },
    "SOFI": {
     "company": "SOFI TECHNOLOGIES INC",
-    "shares": 4821482.0,
-    "value": 74347252.44,
+    "shares": 5316460.0,
+    "value": 78949431.0,
     "weight": 0.7
    },
    "SPCX": {
     "company": "SPACE EXPLORATION TECHN-CL A",
-    "shares": 6237146.0,
-    "value": 867649380.06,
-    "weight": 8.2
+    "shares": 7218578.0,
+    "value": 991543874.08,
+    "weight": 8.79
    },
    "TEM": {
     "company": "TEMPUS AI INC-CL A",
-    "shares": 8903445.0,
-    "value": 637486662.0,
-    "weight": 6.02
+    "shares": 9817709.0,
+    "value": 635794834.84,
+    "weight": 5.64
    },
    "TSLA": {
     "company": "TESLA INC",
-    "shares": 3309410.0,
-    "value": 1291397970.2,
-    "weight": 12.2
+    "shares": 3649130.0,
+    "value": 1385720626.2,
+    "weight": 12.28
    },
    "TSM": {
     "company": "TAIWAN SEMICONDUCTOR-SP ADR",
-    "shares": 287610.0,
-    "value": 114678735.3,
-    "weight": 1.08
+    "shares": 317112.0,
+    "value": 118425476.4,
+    "weight": 1.05
    },
    "TWST": {
     "company": "TWIST BIOSCIENCE CORP",
-    "shares": 2822432.0,
-    "value": 314983411.2,
-    "weight": 2.98
+    "shares": 3112088.0,
+    "value": 326893723.52,
+    "weight": 2.9
    },
    "TXG": {
     "company": "10X GENOMICS INC-CLASS A",
-    "shares": 4388148.0,
-    "value": 255346332.12,
-    "weight": 2.41
+    "shares": 4838724.0,
+    "value": 266081432.76,
+    "weight": 2.36
    },
    "VCYT": {
     "company": "VERACYTE INC",
-    "shares": 3524135.0,
-    "value": 85742204.55,
-    "weight": 0.81
+    "shares": 3885907.0,
+    "value": 93300627.07,
+    "weight": 0.83
    },
    "WGS": {
     "company": "GENEDX HOLDINGS CORP",
-    "shares": 1770598.0,
-    "value": 92726217.26,
+    "shares": 1952378.0,
+    "value": 99610325.56,
     "weight": 0.88
    },
    "X9USDGSFT": {
     "company": "GOLDMAN FS TRSY OBLIG INST 468",
-    "shares": 89128411.0,
-    "value": 89128411.4,
-    "weight": 0.84
+    "shares": 381186051.0,
+    "value": 381186050.66,
+    "weight": 3.38
    },
    "XE": {
     "company": "X-ENERGY INC",
-    "shares": 9106697.0,
-    "value": 100902202.76,
-    "weight": 0.95
+    "shares": 10041821.0,
+    "value": 103631592.72,
+    "weight": 0.92
    },
    "XYZ": {
     "company": "BLOCK INC",
-    "shares": 3535950.0,
-    "value": 299070651.0,
-    "weight": 2.83
+    "shares": 4121387.0,
+    "value": 341910265.52,
+    "weight": 3.03
    }
   }
  },
  "ARKQ": {
-  "date": "11/16/2026",
+  "date": "11/17/2026",
   "holdings": {
    "ACHR": {
     "company": "ARCHER AVIATION INC-A",
-    "shares": 11901721.0,
-    "value": 47963935.63,
-    "weight": 2.79
+    "shares": 13024151.0,
+    "value": 48710324.74,
+    "weight": 2.98
    },
    "AMD": {
     "company": "ADVANCED MICRO DEVICES",
     "shares": 93176.0,
-    "value": 49761574.56,
-    "weight": 2.9
+    "value": 46986793.28,
+    "weight": 2.87
    },
    "AMZN": {
     "company": "AMAZON.COM INC",
     "shares": 248812.0,
-    "value": 66348207.92,
-    "weight": 3.86
+    "value": 64131293.0,
+    "weight": 3.92
    },
    "AUR": {
     "company": "AURORA INNOVATION INC",
     "shares": 5689294.0,
-    "value": 23951927.74,
-    "weight": 1.4
+    "value": 23240765.99,
+    "weight": 1.42
    },
    "AVAV": {
     "company": "AEROVIRONMENT INC",
     "shares": 485222.0,
-    "value": 57023289.44,
-    "weight": 3.32
+    "value": 53131809.0,
+    "weight": 3.25
    },
    "AVGO": {
     "company": "BROADCOM INC",
     "shares": 88788.0,
-    "value": 30810323.88,
-    "weight": 1.79
+    "value": 29601919.2,
+    "weight": 1.81
    },
    "BIDU": {
     "company": "BAIDU INC - SPON ADR",
     "shares": 199531.0,
-    "value": 15591352.34,
-    "weight": 0.91
+    "value": 14753322.14,
+    "weight": 0.9
    },
    "BWXT": {
     "company": "BWX TECHNOLOGIES INC",
     "shares": 205358.0,
-    "value": 25252873.26,
+    "value": 24045368.22,
     "weight": 1.47
    },
    "BYDDY": {
     "company": "BYD CO LTD-UNSPONSORED ADR",
-    "shares": 220991.0,
-    "value": 1843064.94,
-    "weight": 0.11
+    "shares": 129276.0,
+    "value": 1053599.4,
+    "weight": 0.06
    },
    "CAT": {
     "company": "CATERPILLAR INC",
     "shares": 32641.0,
-    "value": 19591128.2,
+    "value": 18621364.09,
     "weight": 1.14
    },
    "CCJ": {
     "company": "CAMECO CORP",
     "shares": 347626.0,
-    "value": 24587586.98,
-    "weight": 1.43
+    "value": 22939839.74,
+    "weight": 1.4
    },
    "DASH": {
     "company": "DOORDASH INC - A",
     "shares": 150992.0,
-    "value": 25896637.92,
-    "weight": 1.51
+    "value": 25635421.76,
+    "weight": 1.57
    },
    "DE": {
     "company": "DEERE & CO",
     "shares": 83852.0,
-    "value": 56477676.08,
-    "weight": 3.29
+    "value": 54838369.48,
+    "weight": 3.35
    },
    "ESLT": {
     "company": "ELBIT SYSTEMS LTD",
     "shares": 24970.0,
-    "value": 17644301.4,
-    "weight": 1.03
+    "value": 16998077.8,
+    "weight": 1.04
    },
    "GOOG": {
     "company": "ALPHABET INC-CL C",
     "shares": 236485.0,
-    "value": 69176592.2,
-    "weight": 4.03
+    "value": 66513771.1,
+    "weight": 4.06
    },
    "ISRG": {
     "company": "INTUITIVE SURGICAL INC",
     "shares": 73461.0,
-    "value": 32586564.99,
-    "weight": 1.9
+    "value": 32157552.75,
+    "weight": 1.97
    },
    "JOBY": {
     "company": "JOBY AVIATION INC",
     "shares": 5685355.0,
-    "value": 28881603.4,
-    "weight": 1.68
+    "value": 26834875.6,
+    "weight": 1.64
    },
    "KDK": {
     "company": "KODIAK AI INC",
-    "shares": 7097675.0,
-    "value": 7878419.25,
-    "weight": 0.46
+    "shares": 7175222.0,
+    "value": 7749239.76,
+    "weight": 0.47
    },
    "KMTUY": {
     "company": "KOMATSU LTD -SPONS ADR",
     "shares": 795883.0,
-    "value": 30641495.5,
-    "weight": 1.78
+    "value": 29901324.31,
+    "weight": 1.83
    },
    "KTOS": {
     "company": "KRATOS DEFENSE & SECURITY",
-    "shares": 2530036.0,
-    "value": 85793520.76,
-    "weight": 5.0
+    "shares": 2557865.0,
+    "value": 80982005.9,
+    "weight": 4.95
    },
    "LHX": {
     "company": "L3HARRIS TECHNOLOGIES INC",
     "shares": 219769.0,
-    "value": 59854087.15,
-    "weight": 3.49
+    "value": 57524535.75,
+    "weight": 3.52
    },
    "LUNR": {
     "company": "INTUITIVE MACHINES INC",
-    "shares": 2635494.0,
-    "value": 34261422.0,
-    "weight": 2.0
+    "shares": 2890338.0,
+    "value": 33903664.74,
+    "weight": 2.07
    },
    "NVDA": {
     "company": "NVIDIA CORP",
     "shares": 513664.0,
-    "value": 83650182.4,
-    "weight": 4.87
+    "value": 80203496.96,
+    "weight": 4.9
    },
    "OKLO": {
     "company": "OKLO INC",
     "shares": 647010.0,
-    "value": 15476479.2,
-    "weight": 0.9
+    "value": 14900640.3,
+    "weight": 0.91
    },
    "PLTR": {
     "company": "PALANTIR TECHNOLOGIES INC-A",
-    "shares": 494669.0,
-    "value": 83099445.31,
-    "weight": 4.84
+    "shares": 392291.0,
+    "value": 62919553.49,
+    "weight": 3.85
    },
    "PONY": {
     "company": "PONY AI INC",
     "shares": 3166269.0,
-    "value": 14121559.74,
-    "weight": 0.82
+    "value": 13298329.8,
+    "weight": 0.81
    },
    "RKLB": {
     "company": "ROCKET LAB CORP",
     "shares": 1339792.0,
-    "value": 82437401.76,
-    "weight": 4.8
+    "value": 76863867.04,
+    "weight": 4.7
    },
    "SNPS": {
     "company": "SYNOPSYS INC",
     "shares": 39758.0,
-    "value": 18097841.6,
-    "weight": 1.05
+    "value": 17546398.14,
+    "weight": 1.07
    },
    "SPCX": {
     "company": "SPACE EXPLORATION TECHN-CL A",
     "shares": 1220704.0,
-    "value": 169812133.44,
-    "weight": 9.89
+    "value": 167675901.44,
+    "weight": 10.25
    },
    "SYM UQ": {
     "company": "SYMBOTIC INC",
     "shares": 884879.0,
-    "value": 30820335.57,
-    "weight": 1.8
+    "value": 30333652.12,
+    "weight": 1.85
    },
    "TER": {
     "company": "TERADYNE INC",
     "shares": 237024.0,
-    "value": 59149339.2,
-    "weight": 3.45
+    "value": 54965865.6,
+    "weight": 3.36
    },
    "TRMB": {
     "company": "TRIMBLE INC",
     "shares": 679190.0,
-    "value": 37790131.6,
-    "weight": 2.2
+    "value": 37172068.7,
+    "weight": 2.27
    },
    "TSLA": {
     "company": "TESLA INC",
     "shares": 572953.0,
-    "value": 223577719.66,
-    "weight": 13.02
+    "value": 217573172.22,
+    "weight": 13.3
    },
    "TSM": {
     "company": "TAIWAN SEMICONDUCTOR-SP ADR",
     "shares": 124475.0,
-    "value": 49631916.75,
-    "weight": 2.89
+    "value": 46485188.75,
+    "weight": 2.84
    },
    "WRD": {
     "company": "WERIDE INC-ADR",
     "shares": 4037885.0,
-    "value": 16716843.9,
-    "weight": 0.97
+    "value": 16070782.3,
+    "weight": 0.98
    },
    "X9USDGSFT": {
     "company": "GOLDMAN FS TRSY OBLIG INST 468",
-    "shares": 852126.0,
-    "value": 852125.84,
-    "weight": 0.05
+    "shares": 1832823.0,
+    "value": 1832822.5,
+    "weight": 0.11
    },
    "XE": {
     "company": "X-ENERGY INC",
     "shares": 1771285.0,
-    "value": 19625837.8,
-    "weight": 1.14
+    "value": 18279661.2,
+    "weight": 1.12
    }
   }
  },
